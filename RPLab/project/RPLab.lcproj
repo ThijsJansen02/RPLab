@@ -1,0 +1,23 @@
+openviews:
+  - viewname: Red Pitaya DSP
+    instanceid: 415575047
+    viewdata: ~
+  - viewname: SSH connections
+    instanceid: 3927329553
+    viewdata:
+      current: 1248383718
+includedassets:
+  - descriptionid: 6544691651984941516
+    includedassets:
+      []
+  - descriptionid: 6498485161872
+    includedassets:
+      - assetid: 1248383718
+        assetdescriptionid: 6498485161872
+        filepath: assets/SSH/rp-f06d2e.local.lcssh
+        flags: 1
+        references:
+          - rp-f06d2e.local
+  - descriptionid: 8122762271555803
+    includedassets:
+      []

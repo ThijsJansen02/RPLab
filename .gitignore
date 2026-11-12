@@ -1,0 +1,23 @@
+bin/
+**/imgui.ini
+
+#python cached files
+__pycache__/
+*.pyc
+
+/dep/cpython/
+
+mydaqfeedback/
+
+.vs/
+*.cap
+
+*.ini
+*.rpproj
+
+Editor/res/assets/
+*.vcxproj.user
+*.vcxproj.filters
+*.vcxproj
+*.slnx
+*.sln
