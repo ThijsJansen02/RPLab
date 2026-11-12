@@ -1,0 +1,4 @@
+[submodule "LabCore"]
+	path = LabCore
+	url = https://github.com/ThijsJansen02/Physica.git
+	branch = dev-RPLab
