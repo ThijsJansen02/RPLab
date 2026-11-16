@@ -1,0 +1,25 @@
+assetidentifier:
+  assetid: 4146717185
+  assetdescriptionid: 6544691651984941516
+  filepath: C:/Users/Thijs/OneDrive/Documenten/programming/RPLab/RPLab/project/assets/scenes/testscene.lcscene
+  flags: 1
+  references:
+    - testscene
+asset:
+  entities:
+    - components:
+        Tag:
+          name: light
+          id: 3954520479
+        Transform:
+          rotXYZ: [0, -0, 0]
+          scale: [1, 1, 1]
+          translation: [-1.5709896, 1.0956223, -0.92648077]
+    - components:
+        Tag:
+          name: cube
+          id: 3337190285
+        Transform:
+          rotXYZ: [0, 0, 0]
+          scale: [1, 1, 1]
+          translation: [0, 0, 0]
