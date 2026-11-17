@@ -9,6 +9,10 @@ namespace RPLab {
 
 	struct DSPview {
 		LabCoreSSH::Connection* redpitaya;
+
+		Engine::String message;
+
+		uint32 socket;
 	};
 
 	LabCore::ViewDescription createDSPviewDescription();

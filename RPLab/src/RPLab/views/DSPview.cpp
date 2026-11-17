@@ -4,9 +4,15 @@
 #include <Engine/imgui/extensions.h>
 #include <labcore-ssh/views/ConnectionView.h>
 
+uint32 connectToSocket(const char* hostname, const char* message);
+void sendMessageOverSocket(uint32 connect, const char* message);
+void closeSocketimpl(uint32 sock);
+
 namespace RPLab {
 
 	typedef DSPview View;
+
+
 
 	static PH::bool32 drawView(View* view) {
 		view->redpitaya = ImGuiext::assetSelecter<LabCoreSSH::Connection>("red pitaya", view->redpitaya, "select connection", LabCore::getAssetLibrary());
@@ -14,6 +20,16 @@ namespace RPLab {
 		ImGui::SameLine();
 		if (ImGui::Button("create")) {
 			LabCoreSSH::openCreateConnectionPopup();
+		}
+
+		ImGuiext::Input("server message", &view->message);
+		if (ImGui::Button("send message")) {
+			sendMessageOverSocket(view->socket, view->message.getC_Str());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("connect")) {
+			closeSocketimpl(view->socket);
+			view->socket = connectToSocket("rp-f06d2e.local", view->message.getC_Str());
 		}
 		
 		return true;
@@ -27,6 +43,7 @@ namespace RPLab {
 
 	static PH::bool32 instantiateView(View* view) {
 		view->redpitaya = nullptr;
+		view->message = Engine::String::create("");
 		return true;
 	}
 

@@ -2,6 +2,13 @@ openviews:
   - viewname: PlotView
     instanceid: 2885417345
     viewdata: ~
+  - viewname: SSH connections
+    instanceid: 817808774
+    viewdata:
+      current: 1248383718
+  - viewname: Red Pitaya DSP
+    instanceid: 843364413
+    viewdata: ~
 includedassets:
   - descriptionid: 6498485161872
     includedassets:
