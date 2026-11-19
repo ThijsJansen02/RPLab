@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -7,6 +8,8 @@
 #include <netinet/in.h>
 #include <cstddef>
 #include <string.h>
+
+#include <errno.h>
 
 #include <time.h>
 
@@ -90,9 +93,9 @@ void writeCoefficient(volatile uint32_t* gpio, uint32_t value, uint32_t adress, 
     
 #ifdef DEBUG_BUILD
     printf("data: ");
-    printf("%u", gpio[GPIO_DATA2 / 4]);
+    printf("%u\n", gpio[GPIO_DATA2 / 4]);
     printf("write address: ");
-    printf("%u", gpio[GPIO_DATA1 / 4]);
+    printf("%u\n", adress);
 #endif
 
     //create timing struct
@@ -108,24 +111,12 @@ void writeCoefficient(volatile uint32_t* gpio, uint32_t value, uint32_t adress, 
 
     //set write pin
     writebit(WRITE_PIN_OFFSET, 1, &gpio[GPIO_DATA1 / 4]);
-
-#ifdef DEBUG_BUILD
-    printf("write enabled:");
-    print_binary(gpio[GPIO_DATA1 / 4]);
-#endif
     
     //sleep inbetween writes
     nanosleep(&ts, &rem);
 
-    printf("hello world!");
-
     //reset the write pin
     writebit(WRITE_PIN_OFFSET, 0, &gpio[GPIO_DATA1 / 4]);
-
-#ifdef DEBUG_BUILD
-    printf("write disabled:");
-    print_binary(gpio[GPIO_DATA1 / 4]);
-#endif
 
     nanosleep(&ts, &rem);
 }
@@ -142,7 +133,7 @@ struct FilterFileLayout {
     BiquadCoefficients filters[4];
 };
 
-void writeBiquad(BiquadCoefficients coeffs, uint32_t biquad, uint32_t* gpio) {
+void writeBiquad(BiquadCoefficients coeffs, uint32_t biquad, volatile uint32_t* gpio) {
     //the adresses in memory where the filters are located
     int32_t fpga_filtercoeff_base_adress[4] = {0, 5, 10, 15};
 
@@ -155,32 +146,49 @@ void writeBiquad(BiquadCoefficients coeffs, uint32_t biquad, uint32_t* gpio) {
     writeCoefficient(gpio, coeffs.a2, adress++);
 }
 
+void releaseShadowBuffer(volatile uint32_t* gpio) {
+     //toggle shadow pulse
+    timespec ts{};
+    ts.tv_sec = 0;
+    ts.tv_nsec = 1000;
+
+    timespec rs{};
+
+    writebit(2, 1, &gpio[GPIO_DATA1 / 4]);
+    nanosleep(&ts, &rs);
+    writebit(2, 0, &gpio[GPIO_DATA1 / 4]);
+    nanosleep(&ts, &rs);
+}
+
+enum RequestType {
+    CLOSE_CONNECTION = 0,
+    CLOSE_SERVER = 1,
+    RUN_BITFILE = 2,
+    SET_COEFFICIENTS = 3
+};
+
+struct RequestHeader {
+    RequestType type;
+    uint32_t payload;
+    uint32_t eor;
+};
+
+#pragma pack(push, 1)
+    struct CoefficientWritePair {
+        uint32_t address;
+        uint32_t value;
+    };
+#pragma pack(pop)
 
 int main (int argc, char **argv) {
 
-   
+    setbuf(stdout, NULL);
 
     int fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (fd < 0) {
         perror("open /dev/mem");
         return 1;
     }
-
-    /*
-    FILE* filterfile = fopen("loadedcoeffs.rpbin", "rb");
-
-    if(filterfile == nullptr) {
-        printf("failed to open coefficient file");
-        return -1;
-    }
-
-    FilterFileLayout filters{};
-    ssize_t nelements_read = fread(&filters, sizeof(FilterFileLayout), 1, filterfile);
-    if(nelements_read < 1) {
-        printf("coeff file is comprimised!");
-        return -1;
-    }
-    */
 
     volatile uint32_t *gpio1 = (volatile uint32_t*)mmap(
         nullptr, GPIO_SIZE,
@@ -193,9 +201,11 @@ int main (int argc, char **argv) {
     gpio1[GPIO_TRI2 / 4] = 0x00000000;
     
 
-   
-
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0) {
+        printf("failed to create socket\n");
+        return -1;
+    }
 
     //listen on port 8000
     struct sockaddr_in serv_addr;
@@ -205,61 +215,100 @@ int main (int argc, char **argv) {
     serv_addr.sin_port = htons(port);
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    bind(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
+
+    int opt = 1;
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+                &opt, sizeof(opt)) < 0)
+    {
+        printf("failed to set reuse addr");
+    }
+
+    if(bind(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) < 0) {
+        printf("failed to bind socket\n");
+        printf("bind failed: %d (%s)\n", errno, strerror(errno));
+        return -1;
+    }
 
 
     if(listen(sockfd, SOMAXCONN) < 0) {
         printf("socket is not able to listen\n");
+        return -1;
     }
 
     struct sockaddr_in client_addr;
     int cli_len = sizeof(client_addr);
     while(1) {
+        printf("ready to accept new connection\n");
         int newsockfd = accept(sockfd, (sockaddr*) &client_addr, (socklen_t*) &cli_len);
-
 
         if(newsockfd < 0) {
             printf("socket accept failed\n");
+            continue;
         }
 
-        printf("accepted new socket\n");
+        printf("accepted new connection\n");
 
+        //we keep the socket open to accept new data
         while(1) {
-            char buffer[1024];
-            int n = recv(newsockfd, buffer, sizeof(buffer) - 1, 0);
-            if(n == -1) {
-                printf("connection failed!");
+            uint8_t message[1024] = {0};
+            int n = recv(newsockfd, message, sizeof(message), 0);
+            if(n < 0) {
+                printf("an error occured on the connection!\n");
                 break;
             }
 
-            buffer[n] = 0;
-
-            printf("got message:\n");
-            printf("%s", buffer);
-            printf("\nend of message\n");
-    
-            if(strcmp("EOF", buffer)==0) {
+            if(n == 0) {
+                printf("the client killed the connection\n");
                 break;
+            }
+
+            RequestHeader* h = (RequestHeader*)message;
+            
+            //if the connection is closed, we can accept new connections
+            if(h->type == CLOSE_CONNECTION) {
+                break;
+            }
+
+            if(h->type == CLOSE_SERVER) {
+                printf("closing the server\n");
+
+                shutdown(newsockfd, SHUT_RDWR);
+                close(newsockfd);
+                close(sockfd);
+                return 0;
+            }
+
+            if(h->type == RUN_BITFILE) {
+                char* path = (char*)h + h->payload;
+                char cmd[1024] = {0};
+                snprintf(cmd, 1024, "fpgautil -b %s", path);
+                printf("%s\n", cmd);
+                system(cmd); 
+            }
+
+            if(h->type == SET_COEFFICIENTS) {
+                CoefficientWritePair* p = (CoefficientWritePair*)((char*)h + h->payload);
+                CoefficientWritePair* end = (CoefficientWritePair*)((char*)h + h->eor);
+                
+
+                //write all coefficients that are in the are in the request
+                while(p < end) {
+                    writeCoefficient(gpio1, p->value, p->address);
+                    p++;
+                }
+
+                releaseShadowBuffer(gpio1);
             }
         }
-        
+
+        shutdown(newsockfd, SHUT_RDWR);
         close(newsockfd);
-        break;
     }
 
     close(sockfd);
 
-    //toggle shadow pulse
-    timespec ts{};
-    ts.tv_sec = 0;
-    ts.tv_nsec = 1000;
-
-    timespec rs{};
-
-    writebit(2, 1, &gpio1[GPIO_DATA1 / 4]);
-    nanosleep(&ts, &rs);
-    writebit(2, 0, &gpio1[GPIO_DATA1 / 4]);
-    nanosleep(&ts, &rs);
+   
 
     return 0;
 }

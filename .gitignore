@@ -17,6 +17,8 @@ mydaqfeedback/
 
 RPserver/src/RPserver/redpitaya-sysroot/**
 
+**/redpitaya-sysroot/**
+
 Editor/res/assets/
 *.vcxproj.user
 *.vcxproj.filters

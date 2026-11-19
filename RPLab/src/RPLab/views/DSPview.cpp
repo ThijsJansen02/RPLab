@@ -4,32 +4,50 @@
 #include <Engine/imgui/extensions.h>
 #include <labcore-ssh/views/ConnectionView.h>
 
-uint32 connectToSocket(const char* hostname, const char* message);
-void sendMessageOverSocket(uint32 connect, const char* message);
-void closeSocketimpl(uint32 sock);
+#include "RpServerConnection.h"
+
 
 namespace RPLab {
 
 	typedef DSPview View;
 
-
-
 	static PH::bool32 drawView(View* view) {
 		view->redpitaya = ImGuiext::assetSelecter<LabCoreSSH::Connection>("red pitaya", view->redpitaya, "select connection", LabCore::getAssetLibrary());
-		
 		ImGui::SameLine();
+		
 		if (ImGui::Button("create")) {
 			LabCoreSSH::openCreateConnectionPopup();
 		}
 
-		ImGuiext::Input("server message", &view->message);
-		if (ImGui::Button("send message")) {
-			sendMessageOverSocket(view->socket, view->message.getC_Str());
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("connect")) {
-			closeSocketimpl(view->socket);
-			view->socket = connectToSocket("rp-f06d2e.local", view->message.getC_Str());
+
+		if (view->redpitaya) {
+			if (ImGui::Button("connect to server")) {
+				closeServerConnection(view->server);
+				view->server = connectToServer(view->redpitaya->remoteip.getC_Str(), "");
+				if (view->server != 1) {
+					sendRunBitFileRequest("PIDlock.bit.bin", view->server);
+				}
+			}
+			if (ImGui::BeginCombo("Server", "server settings")) {
+
+				if (ImGui::Button("build server")) {
+					buildServerOnRedPitaya("assets/RPserver/", view->redpitaya);
+				}
+
+				if (ImGui::Button("Run server")) {
+					runServer(view->redpitaya);
+				}
+
+				if (ImGui::Button("send Server Close")) {
+					sendServerClose(view->server);
+				}
+				ImGui::EndCombo();
+			}
+
+			view->pid.ImGuiDraw();
+			if (ImGui::Button("update pid")) {
+				view->pid.sendToServer(view->server);
+			}
 		}
 		
 		return true;
@@ -43,11 +61,13 @@ namespace RPLab {
 
 	static PH::bool32 instantiateView(View* view) {
 		view->redpitaya = nullptr;
-		view->message = Engine::String::create("");
+		view->server = 0;
+		view->pid = {};
 		return true;
 	}
 
 	static PH::bool32 destroyView(View* data) {
+		closeServerConnection(data->server);
 		return true;
 	}
 
@@ -56,6 +76,7 @@ namespace RPLab {
 	}
 
 	static PH::bool32 deserializeView(View* data, const YAML::Node& node) {
+		closeServerConnection(data->server);
 		return true;
 	}
 
