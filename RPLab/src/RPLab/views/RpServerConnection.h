@@ -1,8 +1,11 @@
 #pragma once
 #include <Engine/Engine.h>
 #include <labcore-ssh/assets/Connection.h>
+#include "../assets/FilterArray.h"
 
 namespace RPLab {
+
+
 
 	//creates a connection socket to a red pitaya with a running server
 	PH::uint32 connectToServer(const char* hostname, const char* message);
@@ -22,6 +25,6 @@ namespace RPLab {
 		PH::uint32 value;
 	};
 #pragma pack(pop)
-
+	void sendFilterArrayToServer24Bit(PH::uint32 serversocket, const RPLab::FilterArray& filter, PH::real64 targetsamplerate);
 	void sendCoefficientsToServer(PH::uint32 serversocket, PH::Base::Array<CoefficientWritePair> coefficients);
 }

@@ -1,0 +1,11 @@
+assetidentifier:
+  assetid: 48234800
+  assetdescriptionid: 29865986986789675
+  filepath: assets/IIRFilters/ExampleIIR.rpfilterarray
+  flags: 1
+  references:
+    - ExampleIIR
+asset:
+  IIRFilters:
+    - !!binary "AQAAAAAAAAAAAAAAAIjDQJaUu8/xaSRAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    - !!binary "AQAAAAAAAAAAAAAAAIjTQAAAAAAAACRAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="

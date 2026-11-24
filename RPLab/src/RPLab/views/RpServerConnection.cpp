@@ -10,6 +10,8 @@
 
 #include <Base/Datastructures/Stream.h>
 
+#include "../assets/FilterArray.h"
+
 #include <Engine/Engine.h>
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
@@ -87,7 +89,7 @@ namespace RPLab {
         iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
         if (iResult != 0) {
             Engine::WARN << "WSAStartup failed with error: " << iResult << "\n";
-            return 1;
+            return 0;
         }
 
         ZeroMemory(&hints, sizeof(hints));
@@ -100,7 +102,7 @@ namespace RPLab {
         if (iResult != 0) {
             Engine::INFO << "getaddrinfo failed with error: " << iResult << "\n";
             WSACleanup();
-            return 1;
+            return 0;
         }
 
 
@@ -217,6 +219,33 @@ namespace RPLab {
         sendMessageOverSocket(serversocket, s.getArray());
 
         Base::Stream<Engine::Allocator>::destroy(&s);
+    }
+
+    inline PH::int32 convertToFixedPoint24(real64 in) {
+        uint64 mult = 1 << 22;
+        real64 result = in * mult;
+        return (PH::int32)(result > 0.0f ? result + 0.5 : result - 0.5);
+    }
+
+
+    void sendFilterArrayToServer24Bit(PH::uint32 serversocket, const RPLab::FilterArray& filter, real64 targetsamplerate) {
+        Engine::ArrayList<CoefficientWritePair> writes = Engine::ArrayList<CoefficientWritePair>::create(1);
+
+        uint32 address = 0;
+        for (const IIRFilter& f : filter.filters) {
+
+            IIRcoefficients_2nd_Order coeffs = calculateBiquadCoefficients(f, targetsamplerate);
+
+            writes.pushBack({ address++, (uint32)convertToFixedPoint24(coeffs.b0) });
+            writes.pushBack({ address++, (uint32)convertToFixedPoint24(coeffs.b1) });
+            writes.pushBack({ address++, (uint32)convertToFixedPoint24(coeffs.b2) });
+            writes.pushBack({ address++, (uint32)convertToFixedPoint24(coeffs.a1) });
+            writes.pushBack({ address++, (uint32)convertToFixedPoint24(coeffs.a2) });
+        }
+
+        sendCoefficientsToServer(serversocket, writes.getArray());
+
+        Engine::ArrayList<CoefficientWritePair>::destroy(&writes);
     }
 
 
