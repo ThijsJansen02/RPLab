@@ -1,31 +1,20 @@
 openviews:
+  - viewname: Scene Hierarchy View
+    instanceid: 841027275
+    viewdata: 0
   - viewname: PlotView
-    instanceid: 2885417345
-    viewdata: ~
-  - viewname: SSH connections
-    instanceid: 817808774
-    viewdata:
-      current: 1248383718
-  - viewname: Red Pitaya DSP
-    instanceid: 843364413
+    instanceid: 3962914320
     viewdata: ~
 includedassets:
-  - descriptionid: 6498485161872
+  - descriptionid: 8122762271555803
     includedassets:
-      - assetid: 1248383718
-        assetdescriptionid: 6498485161872
-        filepath: assets/SSH/rp-f06d2e.local.lcssh
-        flags: 1
-        references:
-          - rp-f06d2e.local
+      []
   - descriptionid: 6544691651984941516
     includedassets:
-      - assetid: 4146717185
-        assetdescriptionid: 6544691651984941516
-        filepath: C:/Users/Thijs/OneDrive/Documenten/programming/RPLab/RPLab/project/assets/scenes/testscene.lcscene
-        flags: 1
-        references:
-          - testscene
-  - descriptionid: 8122762271555803
+      []
+  - descriptionid: 6498485161872
+    includedassets:
+      []
+  - descriptionid: 15876590110196968583
     includedassets:
       []
