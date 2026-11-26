@@ -23,3 +23,8 @@ buildconfig\\premake5 <target>
 Now there should be a buildable solution in your repository. Premake can generate many different buildfiles, see the premake website for all available options. However, this project is tested and developed using the MSVC compiler in [Visual Studio 2026](https://visualstudio.microsoft.com/).
 
 ### Building for visual studio 2026
+To build for visual studio 2026, supply vs2026 as <target> to the premake instruction
+```
+buildconfig\\premake5 vs2026
+```
+Now there should be a file name `RPLab.slnx` in your root directory. Open this file with Visual Studio to open the solution. To build a distributable version of the software, select "dist" as a configuration and build the solution with F5.
