@@ -8,7 +8,7 @@ RPLab is a graphical user interface to interact with, and run custom DSP fpga co
 RPLab is build on the [LabCore / Physica](https://github.com/ThijsJansen02/Physica/tree/dev-RPLab) framework and adds this as a submodule. Currently this software requires a [VulkanSDK](https://vulkan.lunarg.com/sdk/home) installation on your computer. When this SDK is installed the the premake buildconfig automatically figures out where it is located.
 
 ### Clone the repository
-To clone the repository, it is important that the repository is clone recursively. Clone with:
+To clone the repository, it is important that the repository is cloned recursively. Clone with:
 ```
 git clone --recursive https://github.com/ThijsJansen02/RPLab <target directory>
 ```
