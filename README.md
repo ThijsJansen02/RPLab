@@ -23,7 +23,7 @@ buildconfig\\premake5 <target>
 Now there should be a buildable solution in your repository. Premake can generate many different buildfiles, see the premake website for all available options. However, this project is tested and developed using the MSVC compiler in [Visual Studio 2026](https://visualstudio.microsoft.com/).
 
 ### Building for visual studio 2026
-To build for visual studio 2026, supply vs2026 as <target> to the premake instruction
+To build for visual studio 2026, supply "vs2026" as <target> to the premake build instruction.
 ```
 buildconfig\\premake5 vs2026
 ```
