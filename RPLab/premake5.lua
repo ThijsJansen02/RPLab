@@ -36,7 +36,10 @@ project "RPLab"
 		"%{IncludeDir.cpython}",
 		"%{IncludeDir.cpythonPCheaders}",
 		"%{IncludeDir.labcore}",
-		"%{IncludeDir.labcore_ssh}"
+		"%{IncludeDir.labcore_ssh}",
+		"%{IncludeDir.labcore_scene}",
+		"%{IncludeDir.labcore_plt}",
+		"%{IncludeDir.entt}"
 	}
 
 	defines 
@@ -54,6 +57,8 @@ project "RPLab"
 		"yaml-cpp",
 		"LabCore",
 		"LabCore-ssh",
+		"LabCore-scene",
+		"LabCore-plt",
 		"%{Library.platform}"
 	}
 

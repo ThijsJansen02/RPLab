@@ -22,7 +22,12 @@ namespace RPLab {
 		};
 	};
 
+	//inserted little hack, if f_sample == 0.0f do not prewarp
 	inline real64 prewarp(real64 f_continuous, real64 f_sample) {
+		if (f_sample == 0.0f) {
+			return f_continuous;
+		}
+
 		return 2 * f_sample * atan(f_continuous / (2 * f_sample));
 	}
 
@@ -205,10 +210,9 @@ namespace RPLab {
 		return coeffs;
 	}
 
-	//returns the bilinear transformed coefficients for a filter
-	IIRcoefficients_2nd_Order calculateBiquadCoefficients(const IIRFilter& filter, real64 f_sample) {
+	IIRcoefficients_2nd_Order getPrewarpedCoefficients(const IIRFilter& filter, real64 f_sample) {
 		IIRcoefficients_2nd_Order ccoeffs{};
-		
+
 		switch (filter.type) {
 		case FilterType::NOTCH: ccoeffs = getNotchCoefficients(filter.params.cqg, f_sample); break;
 		case FilterType::ALLPASS: ccoeffs = getAllPassCoefficients(); break;
@@ -220,6 +224,17 @@ namespace RPLab {
 		default: ccoeffs = getAllPassCoefficients(); break;
 		};
 
+		return ccoeffs;
+	}
+
+	IIRcoefficients_2nd_Order getIIRcoefficients(const IIRFilter& filter) {
+		return getPrewarpedCoefficients(filter, 0.0f);
+	}
+
+	//returns the bilinear transformed coefficients for a filter
+	IIRcoefficients_2nd_Order calculateBiquadCoefficients(const IIRFilter& filter, real64 f_sample) {
+		
+		IIRcoefficients_2nd_Order ccoeffs = getPrewarpedCoefficients(filter, f_sample);
 		IIRcoefficients_2nd_Order dcoeffs{};
 
 		bilinearTransform((real64*)&ccoeffs, (real64*)&dcoeffs, f_sample);

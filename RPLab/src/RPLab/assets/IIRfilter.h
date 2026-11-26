@@ -80,6 +80,9 @@ namespace RPLab {
 
 	//returns the bilinear transformed coefficients for a filter
 	IIRcoefficients_2nd_Order calculateBiquadCoefficients(const IIRFilter& filter, PH::real64 f_sample);
+
+	//returns the unwarped continuous coefficients
+	IIRcoefficients_2nd_Order getIIRcoefficients(const IIRFilter& filter);
 	
 	//draws the ImGui ui for the given IIR filter, returns true if the filter is invalidated
 	PH::bool32 drawIIRFilterUI(IIRFilter* filter);

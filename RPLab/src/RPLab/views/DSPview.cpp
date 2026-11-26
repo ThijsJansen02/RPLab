@@ -186,8 +186,13 @@ namespace RPLab {
 
 	static PH::bool32 serializeView(View* view, YAML::Emitter& out) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "SSHconnection" << YAML::Value << view->redpitaya->id;
-		out << YAML::Key << "FilterArray" << YAML::Value << view->filterarry->id;
+		if (view->redpitaya) {
+			out << YAML::Key << "SSHconnection" << YAML::Value << view->redpitaya->id;
+		}
+
+		if (view->filterarry) {
+			out << YAML::Key << "FilterArray" << YAML::Value << view->filterarry->id;
+		}
 		out << YAML::Key << "decimation" << YAML::Value << view->decimation;
 		out << YAML::Key << "autoupdate" << YAML::Value << view->autoupdate;
 		out << YAML::EndMap;
